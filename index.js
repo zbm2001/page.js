@@ -117,15 +117,15 @@
   page.current = '';
 
   /**
-   * Number of pages navigated to.
+   * Array of pages navigated to.
    * @type {number}
    *
-   *     page.len == 0;
+   *     page.history = [];
    *     page('/login');
-   *     page.len == 1;
+   *     page.history == ['/login'];
    */
 
-  page.len = 0;
+  page.history = [];
 
   /**
    * Get or set basepath to `path`.
@@ -177,7 +177,7 @@
   page.stop = function() {
     if (!running) return;
     page.current = '';
-    page.len = 0;
+    page.history.length = 0;
     running = false;
     document.removeEventListener(clickEvent, onclick, false);
     window.removeEventListener('popstate', onpopstate, false);
@@ -212,11 +212,11 @@
    */
 
   page.back = function(path, state) {
-    if (page.len > 0) {
+    if (page.history.length > 0) {
       // this may need more testing to see if all browsers
       // wait for the next tick to go back in history
       history.back();
-      page.len--;
+      page.history.length--;
     } else if (path) {
       setTimeout(function() {
         page.show(path, state);
@@ -379,28 +379,111 @@
   function Context(path, state) {
     if ('/' === path[0] && 0 !== path.indexOf(base)) path = base + (hashbang ? '#!' : '') + path;
     var i = path.indexOf('?');
+    var j;
+    var parts;
 
     this.canonicalPath = path;
     this.path = path.replace(base, '') || '/';
     if (hashbang) this.path = this.path.replace('#!', '') || '/';
 
-    this.title = document.title;
+    this.title = (typeof document !== 'undefined' && document.title);
     this.state = state || {};
-    this.state.path = path;
-    this.querystring = ~i ? decodeURLEncodedURIComponent(path.slice(i + 1)) : '';
-    this.pathname = decodeURLEncodedURIComponent(~i ? path.slice(0, i) : path);
+    // this.state.path = path;
+
+    if(~i){
+      this.pathname = decodeURLEncodedURIComponent(path.slice(0, i));
+      this.querystring = decodeURLEncodedURIComponent(path.slice(i + 1));
+      j = this.querystring.indexOf('#');
+      if(~j){
+        this.search = this.querystring.slice(0, j);
+        this.hash = this.querystring.slice(j + 1);
+      }
+      else{
+        this.search = this.querystring;
+      }
+    }
+    else{
+      j = path.indexOf('#');
+      if(~j){
+        this.pathname = decodeURLEncodedURIComponent(path.slice(0, j));
+        this.hash = decodeURLEncodedURIComponent(path.slice(j + 1))
+      }
+    }
+
+    this.segments = pathname.slice(1).split('/');
+
+    i = pathname.lastIndexOf('/');
+    if(~i){
+      this.dir = pathname.slice(0, i);
+      this.file = pathname.slice(i + 1);
+      j = this.file.lastIndexOf('.');
+      if(~j){
+        this.filename = this.file.slice(0, j);
+        this.fileSuffix = this.file.slice(j + 1);
+      }
+      else{
+        this.filename = this.file;
+      }
+    }
+
+    this.restParams = {};
     this.params = {};
 
     // fragment
     this.hash = '';
     if (!hashbang) {
       if (!~this.path.indexOf('#')) return;
-      var parts = this.path.split('#');
+      parts = this.path.split('#');
       this.path = parts[0];
       this.hash = decodeURLEncodedURIComponent(parts[1]) || '';
       this.querystring = this.querystring.split('#')[0];
     }
   }
+
+  Context.prototype.canonicalPath = '';
+  Context.prototype.path = null;
+  Context.prototype.title = '';
+  Context.prototype.state = null;
+  Context.prototype.querystring = '';
+  Context.prototype.search = '';
+  Context.prototype.hash = '';
+  Context.prototype.pathname = '';
+  Context.prototype.path = '';
+  Context.prototype.dir = '/';
+  Context.prototype.file = '';
+  Context.prototype.filename = '';
+  Context.prototype.fileSuffix = '';
+  Context.prototype.params = null;
+  Context.prototype.restParams = null;
+  Context.prototype.segments = null;
+
+  Context.prototype.parseSearch2Params = function (search, undecode) {
+    var params = {};
+    if (search) {
+      search.charAt(0) === '?' && (search = search.slice(1));
+      search.split('&').forEach(function (param) {
+        var i = param.indexOf('=');
+        var name = param.slice(0, i++);
+        var value = undecode ? param.slice(i) : decodeURIComponent(param.slice(i));
+        var oldValue = this[name];
+
+        switch (typeof oldValue) {
+          case 'string':
+            this[name] = [oldValue, value];
+            return
+          case 'undefined':
+            this[name] = value;
+            return
+          case 'object':
+            if (oldValue) {
+              oldValue.push(value);
+            }
+            return
+        }
+      }, params);
+    }
+    return params;
+  };
 
   /**
    * Expose `Context`.
@@ -415,8 +498,9 @@
    */
 
   Context.prototype.pushState = function() {
-    page.len++;
-    history.pushState(this.state, this.title, hashbang && this.path !== '/' ? '#!' + this.path : this.canonicalPath);
+    var url = hashbang && this.path !== '/' ? '#!' + this.path : this.canonicalPath;
+    page.history.push(url);
+    history.pushState(this.state, this.title, url);
   };
 
   /**

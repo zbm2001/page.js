@@ -6,5 +6,6 @@ npm-debug.log
 index-cov.js
 .DS_Store
 
+.npmignore
 .project
 .idea
