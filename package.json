@@ -1,11 +1,11 @@
 {
-  "name": "page",
+  "name": "z-page",
   "description": "Tiny client-side router",
-  "version": "1.7.1",
+  "version": "1.7.3",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/visionmedia/page.js.git"
+    "url": "git://github.com/zbm2001/page.js.git"
   },
   "component": {
     "scripts": {
