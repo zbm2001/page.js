@@ -24,7 +24,13 @@
    * history.location generated polyfill in https://github.com/devote/HTML5-History-API
    */
 
-  var location = ('undefined' !== typeof window) && (window.history.location || window.location);
+  var location;
+  var history;
+
+  if('undefined' !== typeof window){
+    history = window.history;
+    location = history.location || window.location;
+  }
 
   /**
    * Perform initial dispatch.
@@ -498,9 +504,13 @@
    */
 
   Context.prototype.pushState = function() {
-    var url = hashbang && this.path !== '/' ? '#!' + this.path : this.canonicalPath;
-    page.history.push(url);
+    var url = this.getUrl();
     history.pushState(this.state, this.title, url);
+    page.history.push(url);
+  };
+
+  Context.prototype.getUrl = function() {
+    return hashbang && this.path !== '/' ? '#!' + this.path : this.canonicalPath;
   };
 
   /**
@@ -510,7 +520,8 @@
    */
 
   Context.prototype.save = function() {
-    history.replaceState(this.state, this.title, hashbang && this.path !== '/' ? '#!' + this.path : this.canonicalPath);
+    history.replaceState(this.state, this.title, this.getUrl());
+    page.history.splice(page.history.length - 1, 1, url);
   };
 
   /**
