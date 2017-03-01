@@ -435,7 +435,7 @@
     }
 
     this.restParams = {};
-    this.params = {};
+    this.params = parseSearch2Params(this.search, true);
 
     // fragment
     this.hash = '';
@@ -465,7 +465,7 @@
   Context.prototype.restParams = null;
   Context.prototype.segments = null;
 
-  Context.prototype.parseSearch2Params = function (search, undecode) {
+  function parseSearch2Params(search, undecode) {
     var params = {};
     if (search) {
       search.charAt(0) === '?' && (search = search.slice(1));
@@ -492,6 +492,8 @@
     }
     return params;
   };
+
+  page.parseSearch2Params = parseSearch2Params;
 
   /**
    * Expose `Context`.
@@ -568,7 +570,7 @@
   Route.prototype.middleware = function(fn) {
     var self = this;
     return function(ctx, next) {
-      if (self.match(ctx.path, ctx.params)) return fn(ctx, next);
+      if (self.match(ctx.path, ctx.restParams)) return fn(ctx, next);
       next();
     };
   };
