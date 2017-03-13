@@ -27,7 +27,7 @@ var clickEvent = ('undefined' !== typeof document) && document.ontouchstart ? 't
 var location;
 var history;
 
-if('undefined' !== typeof window){
+if ('undefined' !== typeof window) {
   history = window.history;
   location = history.location || window.location;
 }
@@ -88,7 +88,7 @@ var prevContext;
  * @api public
  */
 
-function page(path, fn) {
+function page (path, fn) {
   // <callback>
   if ('function' === typeof path) {
     return page('*', path);
@@ -140,8 +140,8 @@ page.history = [];
  * @api public
  */
 
-page.base = function(path) {
-  if (0 === arguments.length) return base;
+page.base = function (path) {
+  if (!arguments.length) return base;
   base = path;
 };
 
@@ -158,7 +158,7 @@ page.base = function(path) {
  * @api public
  */
 
-page.start = function(options) {
+page.start = function (options) {
   options = options || {};
   if (running) return;
   running = true;
@@ -180,7 +180,7 @@ page.start = function(options) {
  * @api public
  */
 
-page.stop = function() {
+page.stop = function () {
   if (!running) return;
   var pageHistory = page.history.slice()
   page.current = '';
@@ -202,7 +202,7 @@ page.stop = function() {
  * @api public
  */
 
-page.show = function(path, state, dispatch, noPush) {
+page.show = function (path, state, dispatch, noPush) {
   var ctx = new Context(path, state);
   page.current = ctx.path;
   if (false !== dispatch) page.dispatch(ctx);
@@ -237,11 +237,11 @@ page.show = function(path, state, dispatch, noPush) {
 //   }
 // };
 
-page.back = function(path, state) {
+page.back = function (path, state) {
   var len = page.history.length,
-      count = 1,
-      index,
-      spliceHistory;
+    count = 1,
+    index,
+    spliceHistory;
   if (len > 0) {
     switch (typeof path) {
       case 'number':
@@ -256,7 +256,9 @@ page.back = function(path, state) {
         }
         break;
       case 'string':
-        index = page.history.indexOf(function(path){ return url === path });
+        index = page.history.indexOf(function (path) {
+          return url === path
+        });
         if (index < 0) {
           console.warn('history has not path "' + path + '". so do nothing');
           return spliceHistory;
@@ -266,8 +268,8 @@ page.back = function(path, state) {
 
     // this may need more testing to see if all browsers
     // wait for the next tick to go back in history
-    history.go(-count);
     spliceHistory = page.history.splice(-count);
+    history.go(-count);
   }
   return spliceHistory;
 };
@@ -280,11 +282,11 @@ page.back = function(path, state) {
  * @param {string=} to
  * @api public
  */
-page.redirect = function(from, to) {
+page.redirect = function (from, to) {
   // Define route from a path to another
   if ('string' === typeof from && 'string' === typeof to) {
-    page(from, function(e) {
-      setTimeout(function() {
+    page(from, function (e) {
+      setTimeout(function () {
         page.replace(/** @type {!string} */ (to));
       }, 0);
     });
@@ -292,7 +294,7 @@ page.redirect = function(from, to) {
 
   // Wait for the push state and replace it with another
   if ('string' === typeof from && 'undefined' === typeof to) {
-    setTimeout(function() {
+    setTimeout(function () {
       page.replace(from);
     }, 0);
   }
@@ -310,7 +312,7 @@ page.redirect = function(from, to) {
  */
 
 
-page.replace = function(path, state, init, dispatch) {
+page.replace = function (path, state, init, dispatch) {
   var ctx = new Context(path, state);
   page.current = ctx.path;
   ctx.init = init;
@@ -325,20 +327,20 @@ page.replace = function(path, state, init, dispatch) {
  * @param {Context} ctx
  * @api private
  */
-page.dispatch = function(ctx) {
+page.dispatch = function (ctx) {
   var prev = prevContext,
-      i = 0,
-      j = 0;
+    i = 0,
+    j = 0;
 
   prevContext = ctx;
   // console.log(prev)
-  function nextExit() {
+  function nextExit () {
     var fn = page.exits[j++];
     if (!fn) return nextEnter();
     fn(prev, nextExit);
   }
 
-  function nextEnter() {
+  function nextEnter () {
     var fn = page.callbacks[i++];
     // console.log(ctx.path !== page.current)
     if (ctx.path !== page.current) {
@@ -364,7 +366,7 @@ page.dispatch = function(ctx) {
  * @param {Context} ctx
  * @api private
  */
-function unhandled(ctx) {
+function unhandled (ctx) {
   if (ctx.handled) return;
   var current;
 
@@ -386,7 +388,7 @@ function unhandled(ctx) {
  * on the previous context when a new
  * page is visited.
  */
-page.exit = function(path, fn) {
+page.exit = function (path, fn) {
   if (typeof path === 'function') {
     return page.exit('*', path);
   }
@@ -404,8 +406,10 @@ page.exit = function(path, fn) {
  *
  * @param {string} val - URL component to decode
  */
-function decodeURLEncodedURIComponent(val) {
-  if (typeof val !== 'string') { return val; }
+function decodeURLEncodedURIComponent (val) {
+  if (typeof val !== 'string') {
+    return val;
+  }
   return decodeURLComponents ? decodeURIComponent(val.replace(/\+/g, ' ')) : val;
 }
 
@@ -419,11 +423,10 @@ function decodeURLEncodedURIComponent(val) {
  * @api public
  */
 
-function Context(path, state) {
+function Context (path, state) {
   if ('/' === path[0] && 0 !== path.indexOf(base)) path = base + (hashbang ? '#!' : '') + path;
   var i = path.indexOf('?');
   var j;
-  var parts;
 
   this.canonicalPath = path;
   this.path = path.replace(base, '') || '/';
@@ -433,26 +436,26 @@ function Context(path, state) {
   this.state = state || {};
   // this.state.path = path;
 
-  if(i > -1){
+  if (i > -1) {
     this.pathname = decodeURLEncodedURIComponent(path.slice(0, i));
     this.querystring = decodeURLEncodedURIComponent(path.slice(i + 1));
     j = this.querystring.indexOf('#');
-    if(j > -1){
+    if (j > -1) {
       this.search = this.querystring.slice(0, j);
       this.hash = this.querystring.slice(j + 1);
       hashbang || (this.querystring = this.search);
     }
-    else{
+    else {
       this.search = this.querystring;
     }
   }
-  else{
+  else {
     j = path.indexOf('#');
-    if(j > -1){
+    if (j > -1) {
       this.pathname = decodeURLEncodedURIComponent(path.slice(0, j));
       this.hash = decodeURLEncodedURIComponent(path.slice(j + 1))
     }
-    else{
+    else {
       this.pathname = decodeURLEncodedURIComponent(path);
     }
   }
@@ -460,20 +463,20 @@ function Context(path, state) {
   this.segments = this.pathname.slice(1).split('/');
 
   i = this.pathname.lastIndexOf('/');
-  if(i > -1){
+  if (i > -1) {
     this.dir = this.pathname.slice(0, i);
     this.file = this.pathname.slice(i + 1);
   }
-  else{
+  else {
     this.file = this.pathname;
   }
 
   j = this.file.lastIndexOf('.');
-  if(j > -1){
+  if (j > -1) {
     this.filename = this.file.slice(0, j);
     this.fileSuffix = this.file.slice(j + 1);
   }
-  else{
+  else {
     this.filename = this.file;
   }
 
@@ -508,7 +511,7 @@ Context.prototype.params = null;
 Context.prototype.restParams = null;
 Context.prototype.segments = null;
 
-function parseSearch2Params(search, undecode) {
+function parseSearch2Params (search, undecode) {
   var params = {};
   if (search) {
     search.charAt(0) === '?' && (search = search.slice(1));
@@ -550,14 +553,14 @@ page.Context = Context;
  * @api private
  */
 
-Context.prototype.pushState = function() {
+Context.prototype.pushState = function () {
   var url = this.getUrl();
   history.pushState(this.state, this.title, url);
   page.history.push(url);
   console.log('pushState: ', JSON.stringify(page.history))
 };
 
-Context.prototype.getUrl = function() {
+Context.prototype.getUrl = function () {
   return hashbang && this.path !== '/' ? '#!' + this.path : this.canonicalPath;
 };
 
@@ -567,11 +570,11 @@ Context.prototype.getUrl = function() {
  * @api public
  */
 
-Context.prototype.save = function() {
+Context.prototype.save = function () {
   var url = this.getUrl(),
-      len = page.history.length;
+    len = page.history.length;
   history.replaceState(this.state, this.title, url);
-  if(len) page.history[len - 1] = url;
+  if (len) page.history[len - 1] = url;
 };
 
 /**
@@ -589,13 +592,13 @@ Context.prototype.save = function() {
  * @api private
  */
 
-function Route(path, options) {
+function Route (path, options) {
   options = options || {};
   this.path = (path === '*') ? '(.*)' : path;
   this.method = 'GET';
   this.regexp = pathtoRegexp(this.path,
-      this.keys = [],
-      options);
+    this.keys = [],
+    options);
 }
 
 /**
@@ -613,9 +616,9 @@ page.Route = Route;
  * @api public
  */
 
-Route.prototype.middleware = function(fn) {
+Route.prototype.middleware = function (fn) {
   var self = this;
-  return function(ctx, next) {
+  return function (ctx, next) {
     if (self.match(ctx.path, ctx.restParams)) return fn(ctx, next);
     next();
   };
@@ -631,11 +634,11 @@ Route.prototype.middleware = function(fn) {
  * @api private
  */
 
-Route.prototype.match = function(path, params) {
+Route.prototype.match = function (path, params) {
   var keys = this.keys,
-      qsIndex = path.indexOf('?'),
-      pathname = ~qsIndex ? path.slice(0, qsIndex) : path,
-      m = this.regexp.exec(decodeURIComponent(pathname));
+    qsIndex = path.indexOf('?'),
+    pathname = ~qsIndex ? path.slice(0, qsIndex) : path,
+    m = this.regexp.exec(decodeURIComponent(pathname));
 
   if (!m) return false;
 
@@ -663,13 +666,13 @@ var onpopstate = (function () {
   if (document.readyState === 'complete') {
     loaded = true;
   } else {
-    window.addEventListener('load', function() {
-      setTimeout(function() {
+    window.addEventListener('load', function () {
+      setTimeout(function () {
         loaded = true;
       }, 0);
     });
   }
-  return function onpopstate(e) {
+  return function onpopstate (e) {
     if (!loaded) return;
     // if (e.state) {
     //   var path = e.state.path;
@@ -678,14 +681,18 @@ var onpopstate = (function () {
     //   page.show(location.pathname + location.hash, undefined, undefined, false);
     // }
     var path = location.pathname + location.search + location.hash;
-    page.replace(path, e.state);
+    if (e.state) {
+      page.replace(path, e.state);
+    } else {
+      page.current = path
+    }
   };
 })();
 /**
  * Handle "click" events.
  */
 
-function onclick(e) {
+function onclick (e) {
 
   if (1 !== which(e)) return;
 
@@ -693,13 +700,11 @@ function onclick(e) {
   if (e.defaultPrevented) return;
 
 
-
   // ensure link
   // use shadow dom when available
   var el = e.path ? e.path[0] : e.target;
   while (el && 'A' !== el.nodeName) el = el.parentNode;
   if (!el || 'A' !== el.nodeName) return;
-
 
 
   // Ignore if tag has
@@ -712,7 +717,6 @@ function onclick(e) {
   if (!hashbang && el.pathname === location.pathname && (el.hash || '#' === link)) return;
 
 
-
   // Check for mailto: in the href
   if (link && link.indexOf('mailto:') > -1) return;
 
@@ -721,7 +725,6 @@ function onclick(e) {
 
   // x-origin
   if (!sameOrigin(el.href)) return;
-
 
 
   // rebuild path
@@ -752,7 +755,7 @@ function onclick(e) {
  * Event button.
  */
 
-function which(e) {
+function which (e) {
   e = e || window.event;
   return null === e.which ? e.button : e.which;
 }
@@ -761,7 +764,7 @@ function which(e) {
  * Check if `href` is the same origin.
  */
 
-function sameOrigin(href) {
+function sameOrigin (href) {
   var origin = location.protocol + '//' + location.hostname;
   if (location.port) origin += ':' + location.port;
   return (href && (0 === href.indexOf(origin)));
