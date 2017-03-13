@@ -217,23 +217,57 @@ page.show = function(path, state, dispatch, push) {
  * @api public
  */
 
+// page.back = function(path, state) {
+//   if (page.history.length > 0) {
+//     // this may need more testing to see if all browsers
+//     // wait for the next tick to go back in history
+//     history.back();
+//     page.history.length--;
+//   } else if (path) {
+//     setTimeout(function() {
+//       page.show(path, state);
+//     });
+//   } else {
+//     setTimeout(function() {
+//       page.show(base, state);
+//     });
+//   }
+// };
+
 page.back = function(path, state) {
-  if (page.history.length > 0) {
+  var len = page.history.length,
+      count = 1,
+      index,
+      spliceHistory;
+  if (len > 0) {
+    switch (typeof path) {
+      case 'number':
+        count = parseInt(path)
+        if (count < 1) {
+          console.warn('arguments[0] "' + path + '" is less than 1. so do nothing');
+          return spliceHistory;
+        }
+        else if (count > len) {
+          console.warn('arguments[0] "' + path + '" is greater than history\'s length. so do nothing');
+          return spliceHistory;
+        }
+        break;
+      case 'string':
+        index = page.history.indexOf(function(path){ return url === path });
+        if (index < 0) {
+          console.warn('history has not path "' + path + '". so do nothing');
+          return spliceHistory;
+        }
+        break;
+    }
+
     // this may need more testing to see if all browsers
     // wait for the next tick to go back in history
-    history.back();
-    page.history.length--;
-  } else if (path) {
-    setTimeout(function() {
-      page.show(path, state);
-    });
-  }else{
-    setTimeout(function() {
-      page.show(base, state);
-    });
+    history.go(-count);
+    spliceHistory = page.history.splice(-count);
   }
+  return spliceHistory;
 };
-
 
 /**
  * Register route to redirect from one path to other
@@ -530,9 +564,10 @@ Context.prototype.getUrl = function() {
  */
 
 Context.prototype.save = function() {
-  var url = this.getUrl();
+  var url = this.getUrl(),
+      len = page.history.length;
   history.replaceState(this.state, this.title, url);
-  page.history[page.history.length - 1] = url;
+  if(len) page.history[len - 1] = url;
 };
 
 /**
