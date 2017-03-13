@@ -182,11 +182,13 @@ page.start = function(options) {
 
 page.stop = function() {
   if (!running) return;
+  var pageHistory = page.history.slice()
   page.current = '';
   page.history.length = 0;
   running = false;
   document.removeEventListener(clickEvent, onclick, false);
   window.removeEventListener('popstate', onpopstate, false);
+  return pageHistory;
 };
 
 /**
@@ -200,11 +202,12 @@ page.stop = function() {
  * @api public
  */
 
-page.show = function(path, state, dispatch, push) {
+page.show = function(path, state, dispatch, noPush) {
   var ctx = new Context(path, state);
   page.current = ctx.path;
   if (false !== dispatch) page.dispatch(ctx);
-  if (false !== ctx.handled && false !== push) ctx.pushState();
+  console.log('ctx.handled: ', ctx.handled)
+  if (!ctx.handled && !noPush) ctx.pushState();
   return ctx;
 };
 
@@ -328,7 +331,7 @@ page.dispatch = function(ctx) {
       j = 0;
 
   prevContext = ctx;
-
+  // console.log(prev)
   function nextExit() {
     var fn = page.exits[j++];
     if (!fn) return nextEnter();
@@ -337,7 +340,7 @@ page.dispatch = function(ctx) {
 
   function nextEnter() {
     var fn = page.callbacks[i++];
-
+    // console.log(ctx.path !== page.current)
     if (ctx.path !== page.current) {
       ctx.handled = false;
       return;
@@ -551,6 +554,7 @@ Context.prototype.pushState = function() {
   var url = this.getUrl();
   history.pushState(this.state, this.title, url);
   page.history.push(url);
+  console.log('pushState: ', JSON.stringify(page.history))
 };
 
 Context.prototype.getUrl = function() {
