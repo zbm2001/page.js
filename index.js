@@ -680,12 +680,13 @@ var onpopstate = (function () {
     // } else {
     //   page.show(location.pathname + location.hash, undefined, undefined, false);
     // }
-    var path = location.pathname + location.search + location.hash;
-    if (e.state) {
-      page.replace(path, e.state);
-    } else {
-      page.current = path
-    }
+    console.log('e.state: ', e.state)
+    // var path = location.pathname + location.search + location.hash;
+    // if (e.state) {
+    //   page.replace(path, e.state);
+    // } else {
+    //   page.current = path
+    // }
   };
 })();
 /**
