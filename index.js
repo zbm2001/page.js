@@ -202,12 +202,12 @@ page.stop = function () {
  * @api public
  */
 
-page.show = function (path, state, dispatch, noPush) {
+page.show = function (path, state, dispatch, push) {
   var ctx = new Context(path, state);
   page.current = ctx.path;
   if (false !== dispatch) page.dispatch(ctx);
-  console.log('ctx.handled: ', ctx.handled)
-  if (!ctx.handled && !noPush) ctx.pushState();
+  // console.log('ctx.handled: ', ctx.handled)
+  if (false !== ctx.handled && false !== push) ctx.pushState();
   return ctx;
 };
 
@@ -423,6 +423,16 @@ function decodeURLEncodedURIComponent (val) {
  * @api public
  */
 
+var STATE_PATH_KEY = ('page' + new Date().getTime() + Math.random()).replace('.');
+
+page.getStatePath = function(state){
+  return state[STATE_PATH_KEY];
+};
+
+page.removeStatePath = function(state){
+  delete state[STATE_PATH_KEY];
+};
+
 function Context (path, state) {
   if ('/' === path[0] && 0 !== path.indexOf(base)) path = base + (hashbang ? '#!' : '') + path;
   var i = path.indexOf('?');
@@ -435,6 +445,7 @@ function Context (path, state) {
   this.title = (typeof document !== 'undefined' && document.title);
   this.state = state || {};
   // this.state.path = path;
+  this.state[STATE_PATH_KEY] = path;
 
   if (i > -1) {
     this.pathname = decodeURLEncodedURIComponent(path.slice(0, i));
@@ -557,7 +568,7 @@ Context.prototype.pushState = function () {
   var url = this.getUrl();
   history.pushState(this.state, this.title, url);
   page.history.push(url);
-  console.log('pushState: ', JSON.stringify(page.history))
+  // console.log('pushState: ', JSON.stringify(page.history))
 };
 
 Context.prototype.getUrl = function () {
@@ -674,19 +685,14 @@ var onpopstate = (function () {
   }
   return function onpopstate (e) {
     if (!loaded) return;
-    // if (e.state) {
-    //   var path = e.state.path;
-    //   page.replace(path, e.state);
-    // } else {
-    //   page.show(location.pathname + location.hash, undefined, undefined, false);
-    // }
-    console.log('e.state: ', e.state)
-    // var path = location.pathname + location.search + location.hash;
-    // if (e.state) {
-    //   page.replace(path, e.state);
-    // } else {
-    //   page.current = path
-    // }
+    var path;
+    if (e.state) {
+      path = page.getStatePath(e.state);
+      page.replace(path, e.state);
+    } else {
+      path = location.pathname + location.search + location.hash;
+      page.show(path, undefined, undefined, false);
+    }
   };
 })();
 /**
