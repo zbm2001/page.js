@@ -412,6 +412,7 @@ function decodeURLEncodedURIComponent (val) {
   }
   return decodeURLComponents ? decodeURIComponent(val.replace(/\+/g, ' ')) : val;
 }
+page.decodeURLEncodedURIComponent = decodeURLEncodedURIComponent;
 
 /**
  * Initialize a new "request" `Context`
