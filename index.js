@@ -225,24 +225,24 @@ page.show = function (path, state, dispatch, push) {
 
 page.back = function (path, state) {
   var len = page.history.length,
-    count = 1,
-    index,
-    spliceHistory;
+      count = -1,
+      index,
+      spliceHistory;
   if (len > 0) {
     switch (typeof path) {
       case 'number':
         count = parseInt(path)
-        if (count < 1) {
-          console.warn('arguments[0] "' + path + '" is less than 1. so do nothing');
+        if (count > -1) {
+          console.warn('arguments[0] "' + path + '" is greater than -1. so do nothing');
           return spliceHistory;
         }
-        else if (count > len) {
+        else if (-count > len) {
           console.warn('arguments[0] "' + path + '" is greater than history\'s length. so do nothing');
           return spliceHistory;
         }
         break;
       case 'string':
-        index = page.history.indexOf(function (path) {
+        index = page.history.lastIndexOf(function (path) {
           return url === path
         });
         if (index < 0) {
@@ -254,8 +254,8 @@ page.back = function (path, state) {
 
     // this may need more testing to see if all browsers
     // wait for the next tick to go back in history
-    spliceHistory = page.history.splice(-count);
-    history.go(-count);
+    spliceHistory = page.history.splice(len + count);
+    history.go(count);
   }
   return spliceHistory;
 };
@@ -313,8 +313,8 @@ page.replace = function (path, state, init, dispatch) {
  */
 page.dispatch = function (ctx) {
   var prev = prevContext,
-    i = 0,
-    j = 0;
+      i = 0,
+      j = 0;
 
   prevContext = ctx;
   // console.log(prev)
@@ -567,7 +567,7 @@ Context.prototype.getUrl = function () {
 
 Context.prototype.save = function () {
   var url = this.getUrl(),
-    len = page.history.length;
+      len = page.history.length;
   history.replaceState(this.state, this.title, url);
   if (len) page.history[len - 1] = url;
 };
@@ -592,8 +592,8 @@ function Route (path, options) {
   this.path = (path === '*') ? '(.*)' : path;
   this.method = 'GET';
   this.regexp = pathtoRegexp(this.path,
-    this.keys = [],
-    options);
+      this.keys = [],
+      options);
 }
 
 /**
@@ -631,9 +631,9 @@ Route.prototype.middleware = function (fn) {
 
 Route.prototype.match = function (path, params) {
   var keys = this.keys,
-    qsIndex = path.indexOf('?'),
-    pathname = ~qsIndex ? path.slice(0, qsIndex) : path,
-    m = this.regexp.exec(decodeURIComponent(pathname));
+      qsIndex = path.indexOf('?'),
+      pathname = ~qsIndex ? path.slice(0, qsIndex) : path,
+      m = this.regexp.exec(decodeURIComponent(pathname));
 
   if (!m) return false;
 

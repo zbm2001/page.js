@@ -7,13 +7,11 @@
 /**
  * Module dependencies.
  */
-
 var pathtoRegexp = require('path-to-regexp');
 
 /**
  * Module exports.
  */
-
 module.exports = page;
 
 /**
@@ -25,7 +23,6 @@ var clickEvent = ('undefined' !== typeof document) && document.ontouchstart ? 't
  * To work properly with the URL
  * history.location generated polyfill in https://github.com/devote/HTML5-History-API
  */
-
 var location;
 var history;
 
@@ -37,9 +34,7 @@ if ('undefined' !== typeof window) {
 /**
  * Perform initial dispatch.
  */
-
 var dispatch = true;
-
 
 /**
  * Decode URL components (query string, pathname, hash).
@@ -50,26 +45,22 @@ var decodeURLComponents = true;
 /**
  * Base path.
  */
-
 var base = '';
 
 /**
  * Running flag.
  */
-
 var running;
 
 /**
  * HashBang option
  */
-
 var hashbang = false;
 
 /**
  * Previous context, for capturing
  * page exit events.
  */
-
 var prevContext;
 
 /**
@@ -89,7 +80,6 @@ var prevContext;
  * @param {Function=} fn
  * @api public
  */
-
 function page (path, fn) {
   // <callback>
   if ('function' === typeof path) {
@@ -132,7 +122,6 @@ page.current = '';
  *     page('/login');
  *     page.history == ['/login'];
  */
-
 page.history = [];
 
 /**
@@ -141,7 +130,6 @@ page.history = [];
  * @param {string} path
  * @api public
  */
-
 page.base = function (path) {
   if (!arguments.length) return base;
   base = path;
@@ -159,7 +147,6 @@ page.base = function (path) {
  * @param {Object} options
  * @api public
  */
-
 page.start = function (options) {
   options = options || {};
   if (running) return;
@@ -221,7 +208,6 @@ page.show = function (path, state, dispatch, push) {
  * @param {Object=} state
  * @api public
  */
-
 // page.back = function(path, state) {
 //   if (page.history.length > 0) {
 //     // this may need more testing to see if all browsers
@@ -241,24 +227,24 @@ page.show = function (path, state, dispatch, push) {
 
 page.back = function (path, state) {
   var len = page.history.length,
-    count = 1,
-    index,
-    spliceHistory;
+      count = -1,
+      index,
+      spliceHistory;
   if (len > 0) {
     switch (typeof path) {
       case 'number':
         count = parseInt(path)
-        if (count < 1) {
-          console.warn('arguments[0] "' + path + '" is less than 1. so do nothing');
+        if (count > -1) {
+          console.warn('arguments[0] "' + path + '" is greater than -1. so do nothing');
           return spliceHistory;
         }
-        else if (count > len) {
+        else if (-count > len) {
           console.warn('arguments[0] "' + path + '" is greater than history\'s length. so do nothing');
           return spliceHistory;
         }
         break;
       case 'string':
-        index = page.history.indexOf(function (path) {
+        index = page.history.lastIndexOf(function (path) {
           return url === path
         });
         if (index < 0) {
@@ -270,8 +256,8 @@ page.back = function (path, state) {
 
     // this may need more testing to see if all browsers
     // wait for the next tick to go back in history
-    spliceHistory = page.history.splice(-count);
-    history.go(-count);
+    spliceHistory = page.history.splice(len + count);
+    history.go(count);
   }
   return spliceHistory;
 };
@@ -312,8 +298,6 @@ page.redirect = function (from, to) {
  * @return {!Context}
  * @api public
  */
-
-
 page.replace = function (path, state, init, dispatch) {
   var ctx = new Context(path, state);
   page.current = ctx.path;
@@ -331,8 +315,8 @@ page.replace = function (path, state, init, dispatch) {
  */
 page.dispatch = function (ctx) {
   var prev = prevContext,
-    i = 0,
-    j = 0;
+      i = 0,
+      j = 0;
 
   prevContext = ctx;
   // console.log(prev)
@@ -425,15 +409,14 @@ page.decodeURLEncodedURIComponent = decodeURLEncodedURIComponent;
  * @param {Object=} state
  * @api public
  */
-
-var STATE_PATH_KEY = ('page' + new Date().getTime() + Math.random()).replace('.');
+var statePathKey = ('page' + new Date().getTime() + Math.random()).replace('.');
 
 page.getStatePath = function(state){
-  return state[STATE_PATH_KEY];
+  return state[statePathKey];
 };
 
 page.removeStatePath = function(state){
-  delete state[STATE_PATH_KEY];
+  delete state[statePathKey];
 };
 
 function Context (path, state) {
@@ -448,7 +431,7 @@ function Context (path, state) {
   this.title = (typeof document !== 'undefined' && document.title);
   this.state = state || {};
   // this.state.path = path;
-  this.state[STATE_PATH_KEY] = path;
+  this.state[statePathKey] = path;
 
   if (i > -1) {
     this.pathname = decodeURLEncodedURIComponent(path.slice(0, i));
@@ -586,7 +569,7 @@ Context.prototype.getUrl = function () {
 
 Context.prototype.save = function () {
   var url = this.getUrl(),
-    len = page.history.length;
+      len = page.history.length;
   history.replaceState(this.state, this.title, url);
   if (len) page.history[len - 1] = url;
 };
@@ -611,8 +594,8 @@ function Route (path, options) {
   this.path = (path === '*') ? '(.*)' : path;
   this.method = 'GET';
   this.regexp = pathtoRegexp(this.path,
-    this.keys = [],
-    options);
+      this.keys = [],
+      options);
 }
 
 /**
@@ -650,9 +633,9 @@ Route.prototype.middleware = function (fn) {
 
 Route.prototype.match = function (path, params) {
   var keys = this.keys,
-    qsIndex = path.indexOf('?'),
-    pathname = ~qsIndex ? path.slice(0, qsIndex) : path,
-    m = this.regexp.exec(decodeURIComponent(pathname));
+      qsIndex = path.indexOf('?'),
+      pathname = ~qsIndex ? path.slice(0, qsIndex) : path,
+      m = this.regexp.exec(decodeURIComponent(pathname));
 
   if (!m) return false;
 
