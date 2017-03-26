@@ -193,7 +193,6 @@ page.show = function (path, state, dispatch, push) {
   var ctx = new Context(path, state);
   page.current = ctx.path;
   if (false !== dispatch) page.dispatch(ctx);
-  // console.log('ctx.handled: ', ctx.handled)
   if (false !== ctx.handled && false !== push) ctx.pushState();
   return ctx;
 };
@@ -226,36 +225,42 @@ page.show = function (path, state, dispatch, push) {
 page.back = function (path, state) {
   var len = page.history.length,
       count = -1,
-      index,
-      spliceHistory;
-  if (len > 0) {
+      spliceStart = len + count,
+      index = spliceStart - 1,
+      spliceHistory = null;
+  if (len > 1) {
     switch (typeof path) {
       case 'number':
-        count = parseInt(path)
+        count = parseInt(path);
         if (count > -1) {
           console.warn('arguments[0] "' + path + '" is greater than -1. so do nothing');
           return spliceHistory;
         }
-        else if (-count > len) {
+        spliceStart = len + count;
+        if (spliceStart < 1) {
           console.warn('arguments[0] "' + path + '" is greater than history\'s length. so do nothing');
           return spliceHistory;
         }
+        index = spliceStart - 1
         break;
       case 'string':
         index = page.history.lastIndexOf(function (path) {
-          return url === path
+          return url === path;
         });
         if (index < 0) {
           console.warn('history has not path "' + path + '". so do nothing');
           return spliceHistory;
         }
+        spliceStart = index + 1;
+        count = spliceStart - len;
         break;
     }
 
+    history.go(count);
     // this may need more testing to see if all browsers
     // wait for the next tick to go back in history
-    spliceHistory = page.history.splice(len + count);
-    history.go(count);
+    spliceHistory = page.history.splice(sliceStart);
+    page.current = page.history[index]
   }
   return spliceHistory;
 };
@@ -317,7 +322,6 @@ page.dispatch = function (ctx) {
       j = 0;
 
   prevContext = ctx;
-  // console.log(prev)
   function nextExit () {
     var fn = page.exits[j++];
     if (!fn) return nextEnter();
@@ -326,7 +330,6 @@ page.dispatch = function (ctx) {
 
   function nextEnter () {
     var fn = page.callbacks[i++];
-    // console.log(ctx.path !== page.current)
     if (ctx.path !== page.current) {
       ctx.handled = false;
       return;
@@ -418,7 +421,7 @@ page.removeStatePath = function(state){
 };
 
 function Context (path, state) {
-  if ('/' === path[0] && 0 !== path.indexOf(base)) path = base + (hashbang ? '#!' : '') + path;
+  if ('/' === path[0] && path.indexOf(base)) path = base + (hashbang ? '#!' : '') + path;
   var i = path.indexOf('?');
   var j;
 
@@ -552,7 +555,6 @@ Context.prototype.pushState = function () {
   var url = this.getUrl();
   history.pushState(this.state, this.title, url);
   page.history.push(url);
-  // console.log('pushState: ', JSON.stringify(page.history))
 };
 
 Context.prototype.getUrl = function () {
@@ -569,7 +571,7 @@ Context.prototype.save = function () {
   var url = this.getUrl(),
       len = page.history.length;
   history.replaceState(this.state, this.title, url);
-  if (len) page.history[len - 1] = url;
+  page.history[len && (len - 1)] = url;
 };
 
 /**
