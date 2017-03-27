@@ -193,7 +193,7 @@ page.stop = function () {
 
 page.show = function (path, state, dispatch, push) {
   var ctx = new Context(path, state);
-  page.current = ctx.path;
+  page.current = ctx.finalPath;
   if (false !== dispatch) page.dispatch(ctx);
   if (false !== ctx.handled && false !== push) ctx.pushState();
   return ctx;
@@ -261,7 +261,7 @@ page.back = function (path, state) {
     history.go(count);
     // this may need more testing to see if all browsers
     // wait for the next tick to go back in history
-    spliceHistory = page.history.splice(sliceStart);
+    spliceHistory = page.history.splice(spliceStart);
     page.current = page.history[index]
   }
   return spliceHistory;
@@ -305,7 +305,7 @@ page.redirect = function (from, to) {
  */
 page.replace = function (path, state, init, dispatch) {
   var ctx = new Context(path, state);
-  page.current = ctx.path;
+  page.current = ctx.finalPath;
   ctx.init = init;
   ctx.save(); // save before dispatching, which may redirect
   if (false !== dispatch) page.dispatch(ctx);
@@ -423,13 +423,22 @@ page.removeStatePath = function(state){
 };
 
 function Context (path, state) {
-  if ('/' === path[0] && path.indexOf(base)) path = base + (hashbang ? '#!' : '') + path;
+  this.originalPath = (path = path.trim());
+  if ('/' === path[0] && path.indexOf(base)){
+    this.canonicalPath = base + (hashbang ? '#!' : '') + path;
+    this.finalPath = this.canonicalPath
+  } else {
+    this.canonicalPath = path;
+    this.path = path.replace(base, '') || '/';
+    if (hashbang) {
+      this.path = this.path.replace('#!', '') || '/';
+      this.finalPath = this.path !== '/' ? '#!' + this.path : this.canonicalPath;
+    } else {
+      this.finalPath = this.canonicalPath;
+    }
+  }
   var i = path.indexOf('?');
   var j;
-
-  this.canonicalPath = path;
-  this.path = path.replace(base, '') || '/';
-  if (hashbang) this.path = this.path.replace('#!', '') || '/';
 
   this.title = (typeof document !== 'undefined' && document.title);
   this.state = state || {};
@@ -494,8 +503,9 @@ function Context (path, state) {
   }
 }
 
+Context.prototype.originalPath = '';
 Context.prototype.canonicalPath = '';
-Context.prototype.path = null;
+Context.prototype.finalPath = '';
 Context.prototype.title = '';
 Context.prototype.state = null;
 Context.prototype.querystring = '';
@@ -544,7 +554,6 @@ page.parseSearch2Params = parseSearch2Params;
 /**
  * Expose `Context`.
  */
-
 page.Context = Context;
 
 /**
@@ -552,15 +561,9 @@ page.Context = Context;
  *
  * @api private
  */
-
 Context.prototype.pushState = function () {
-  var url = this.getUrl();
-  history.pushState(this.state, this.title, url);
-  page.history.push(url);
-};
-
-Context.prototype.getUrl = function () {
-  return hashbang && this.path !== '/' ? '#!' + this.path : this.canonicalPath;
+  history.pushState(this.state, this.title, this.finalPath);
+  page.history.push(this.originalPath);
 };
 
 /**
@@ -570,10 +573,10 @@ Context.prototype.getUrl = function () {
  */
 
 Context.prototype.save = function () {
-  var url = this.getUrl(),
-      len = page.history.length;
-  history.replaceState(this.state, this.title, url);
-  page.history[len && (len - 1)] = url;
+  var len = page.history.length;
+  history.replaceState(this.state, this.title, this.finalPath);
+  // when len === 0, push current to history[0]
+  page.history[len && (len - 1)] = this.finalPath;
 };
 
 /**
