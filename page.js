@@ -332,7 +332,7 @@ page.dispatch = function (ctx) {
 
   function nextEnter () {
     var fn = page.callbacks[i++];
-    if (ctx.path !== page.current) {
+    if (ctx.finalPath !== page.current) {
       ctx.handled = false;
       return;
     }
@@ -427,6 +427,7 @@ function Context (path, state) {
   if ('/' === path[0] && path.indexOf(base)){
     this.canonicalPath = base + (hashbang ? '#!' : '') + path;
     this.finalPath = this.canonicalPath
+    this.path = path
   } else {
     this.canonicalPath = path;
     this.path = path.replace(base, '') || '/';
