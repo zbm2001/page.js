@@ -577,7 +577,7 @@ Context.prototype.save = function () {
   var len = page.history.length;
   history.replaceState(this.state, this.title, this.finalPath);
   // when len === 0, push current to history[0]
-  page.history[len && (len - 1)] = this.finalPath;
+  page.history[len && (len - 1)] = this.originalPath;
 };
 
 /**
