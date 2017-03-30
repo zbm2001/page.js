@@ -233,9 +233,9 @@ page.back = function (path, state) {
   if (len > 1) {
     switch (typeof path) {
       case 'number':
-        count = parseInt(path);
+        count = parseInt(path) || 0;
         if (count > -1) {
-          console.warn('arguments[0] "' + path + '" is greater than -1. so do nothing');
+          console.warn('arguments[0] "' + path + '" is not less than 0. so do nothing');
           return spliceHistory;
         }
         spliceStart = len + count;
