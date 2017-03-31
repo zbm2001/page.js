@@ -233,12 +233,12 @@ page.back = function (path, state) {
       case 'number':
         count = parseInt(path) || 0;
         if (count > -1) {
-          console.warn('arguments[0] "' + path + '" is not less than 0. so do nothing');
+          console.warn('"' + path + '" is not less than 0. so do nothing');
           return spliceHistory;
         }
         spliceStart = len + count;
         if (spliceStart < 1) {
-          console.warn('arguments[0] "' + path + '" is greater than history\'s length. so do nothing');
+          console.warn('"' + path + '" is greater than history\'s length. so do nothing');
           return spliceHistory;
         }
         index = spliceStart - 1
@@ -248,7 +248,7 @@ page.back = function (path, state) {
           return url === path;
         });
         if (index < 0) {
-          console.warn('history has not path "' + path + '". so do nothing');
+          console.warn('History has not path "' + path + '". so do nothing');
           return spliceHistory;
         }
         spliceStart = index + 1;
@@ -262,6 +262,7 @@ page.back = function (path, state) {
     spliceHistory = page.history.splice(spliceStart);
     page.current = page.history[index]
   }
+  console.warn('Has no history now. so do nothing');
   return spliceHistory;
 };
 
