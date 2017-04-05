@@ -246,9 +246,7 @@ page.back = function (path, state) {
         index = spliceStart - 1
         break;
       case 'string':
-        index = page.history.lastIndexOf(function (path) {
-          return url === path;
-        });
+        index = page.history.lastIndexOf(path);
         if (index < 0) {
           console.warn('History has not path "' + path + '". so do nothing');
           return spliceHistory;
@@ -445,7 +443,6 @@ function Context (path, state) {
 
   this.title = (typeof document !== 'undefined' && document.title);
   this.state = state || {};
-  // this.state.path = path;
   this.state[statePathKey] = path;
 
   if (i > -1) {
@@ -680,12 +677,12 @@ var onpopstate = (function () {
   return function onpopstate (e) {
     if (!loaded) return;
     var path;
-    if (e.state) {
+    if(page.onpopstate){console.log(e)
+      page.onpopstate.call(window, e);
+    }
+    else if (e.state) {
       path = page.getStatePath(e.state);
       page.replace(path, e.state);
-    } else {
-      path = location.pathname + location.search + location.hash;
-      page.show(path, undefined, undefined, false);
     }
   };
 })();
