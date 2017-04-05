@@ -261,6 +261,7 @@ page.back = function (path, state) {
     // wait for the next tick to go back in history
     spliceHistory = page.history.splice(spliceStart);
     page.current = page.history[index]
+    return spliceHistory
   }
   console.warn('Has no history now. so do nothing');
   return spliceHistory;
