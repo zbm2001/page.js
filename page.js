@@ -104,7 +104,6 @@ function page (path, fn) {
 /**
  * Callback functions.
  */
-
 page.callbacks = [];
 page.exits = [];
 
@@ -190,7 +189,6 @@ page.stop = function () {
  * @return {!Context}
  * @api public
  */
-
 page.show = function (path, state, dispatch, push) {
   var ctx = new Context(path, state);
   page.current = ctx.finalPath;
@@ -207,23 +205,6 @@ page.show = function (path, state, dispatch, push) {
  * @param {Object=} state
  * @api public
  */
-// page.back = function(path, state) {
-//   if (page.history.length > 0) {
-//     // this may need more testing to see if all browsers
-//     // wait for the next tick to go back in history
-//     history.back();
-//     page.history.length--;
-//   } else if (path) {
-//     setTimeout(function() {
-//       page.show(path, state);
-//     });
-//   } else {
-//     setTimeout(function() {
-//       page.show(base, state);
-//     });
-//   }
-// };
-
 page.back = function (path, state) {
   var len = page.history.length,
       count = -1,
@@ -571,7 +552,6 @@ Context.prototype.pushState = function () {
  *
  * @api public
  */
-
 Context.prototype.save = function () {
   var len = page.history.length;
   history.replaceState(this.state, this.title, this.finalPath);
@@ -593,7 +573,6 @@ Context.prototype.save = function () {
  * @param {Object=} options
  * @api private
  */
-
 function Route (path, options) {
   options = options || {};
   this.path = (path === '*') ? '(.*)' : path;
@@ -606,7 +585,6 @@ function Route (path, options) {
 /**
  * Expose `Route`.
  */
-
 page.Route = Route;
 
 /**
@@ -617,7 +595,6 @@ page.Route = Route;
  * @return {Function}
  * @api public
  */
-
 Route.prototype.middleware = function (fn) {
   var self = this;
   return function (ctx, next) {
@@ -635,7 +612,6 @@ Route.prototype.middleware = function (fn) {
  * @return {boolean}
  * @api private
  */
-
 Route.prototype.match = function (path, params) {
   var keys = this.keys,
       qsIndex = path.indexOf('?'),
@@ -659,7 +635,6 @@ Route.prototype.match = function (path, params) {
 /**
  * Handle "populate" events.
  */
-
 var onpopstate = (function () {
   var loaded = false;
   if ('undefined' === typeof window) {
@@ -677,7 +652,7 @@ var onpopstate = (function () {
   return function onpopstate (e) {
     if (!loaded) return;
     var path;
-    if(page.onpopstate){console.log(e)
+    if(page.onpopstate){
       page.onpopstate.call(window, e);
     }
     else if (e.state) {
@@ -686,10 +661,10 @@ var onpopstate = (function () {
     }
   };
 })();
+
 /**
  * Handle "click" events.
  */
-
 function onclick (e) {
 
   if (1 !== which(e)) return;
@@ -703,7 +678,6 @@ function onclick (e) {
   var el = e.path ? e.path[0] : e.target;
   while (el && 'A' !== el.nodeName) el = el.parentNode;
   if (!el || 'A' !== el.nodeName) return;
-
 
   // Ignore if tag has
   // 1. "download" attribute
@@ -752,7 +726,6 @@ function onclick (e) {
 /**
  * Event button.
  */
-
 function which (e) {
   e = e || window.event;
   return null === e.which ? e.button : e.which;
@@ -761,7 +734,6 @@ function which (e) {
 /**
  * Check if `href` is the same origin.
  */
-
 function sameOrigin (href) {
   var origin = location.protocol + '//' + location.hostname;
   if (location.port) origin += ':' + location.port;
