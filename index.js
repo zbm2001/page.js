@@ -391,7 +391,7 @@ page.decodeURLEncodedURIComponent = decodeURLEncodedURIComponent;
  * @param {Object=} state
  * @api public
  */
-var statePathKey = ('page' + new Date().getTime() + Math.random()).replace('.');
+var statePathKey = ('page_' + new Date().getTime() + '_' + Math.random()).replace('0.', '');
 
 page.getStatePath = function(state){
   return state[statePathKey];
